@@ -4,7 +4,7 @@ function initializedRooms() {
   return [
     new classRoom(19),
     new classRoom(20),
-    new classRoom(34)
+    new classRoom(34),
   ]
 }
-export default initializedRooms
+export default initializedRooms;
