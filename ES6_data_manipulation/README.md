@@ -1,7 +1,5 @@
 This is the README for ES6 Data Manipulation
 
-![](image.png)
-
 
 # Resources
 Read or watch:
