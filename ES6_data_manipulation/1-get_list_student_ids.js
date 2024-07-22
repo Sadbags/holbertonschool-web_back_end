@@ -1,6 +1,6 @@
-export default function getListStudentIds() {
+export default function getListStudentIds(list) {
 	try {
-		return getListStudentIds.map((l) => l.id);
+		return list.map((l) => l.id);
 	} catch (error) {
 		return [];
 	}
