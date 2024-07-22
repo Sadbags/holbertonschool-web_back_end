@@ -1,6 +1,5 @@
 This is the README for ES6 Data Manipulation
 
-
 # Resources
 Read or watch:
 
