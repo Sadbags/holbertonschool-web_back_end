@@ -1,57 +1,23 @@
 #!/usr/bin/env python3
-""" Implement a method named get_page that takes two integer
-    arguments page with default value 1 and page_size
-    with default value 10.
-
-    - You have to use this CSV file
-    - Use assert to verify that both arguments are integers greater than 0.
-    - Use index_range to find the correct indexes to paginate
-        the dataset correctly and return the appropriate page
-        of the dataset (i.e. the correct list of rows).
-    - If the input arguments are out of range for the dataset,
-        an empty list should be returned.
+"""For reading CSV files
+For mathematical operations (unused in this code)
+For type hints
 """
 import csv
 import math
 from typing import List, Tuple
 
 
-def index_range(page: int, page_size: int) -> Tuple[int]:
-    """ Index_range
-
-        Arguments:
-        ---------
-            `page`: current page number
-            `page_size`: items number in every page
-
-        Return:
-        -------
-            list for those particular pagination parameters
-    """
-    start: int
-    end: int
-
-    if page == 1:
-        start = 0
-    else:
-        start = (page - 1) * page_size
-
-    end = page * page_size
-
-    return (start, end)
-
-
 class Server:
-    """Server class to paginate a database of popular baby names.
-    """
+    """Server class to paginate a database of popular baby names."""
+
     DATA_FILE = "Popular_Baby_Names.csv"
 
     def __init__(self):
         self.__dataset = None
 
     def dataset(self) -> List[List]:
-        """Cached dataset
-        """
+        """Cached dataset"""
         if self.__dataset is None:
             with open(self.DATA_FILE) as f:
                 reader = csv.reader(f)
@@ -61,13 +27,25 @@ class Server:
         return self.__dataset
 
     def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
-        """ paginate the dataset correctly and
-            return the appropriate page of the dataset
-        """
-        assert(type(page) == int)
-        assert(type(page_size) == int)
-        assert(page > 0)
-        assert(page_size > 0)
-        dataset = self.dataset()
-        start, end = index_range(page, page_size)
-        return dataset[start: end]
+        """Get pages of popular baby names from dataset"""
+        assert isinstance(page, int) and page > 0
+        assert isinstance(page_size, int) and page_size > 0
+
+        start_index, end_index = self.index_range(page, page_size)
+        if (len(self.dataset()) < start_index) or (len(self.dataset()
+                                                       ) < end_index):
+            return []
+
+        paginated_names = []
+        for i in range(start_index, end_index):
+            paginated_names.append(self.dataset()[i])
+
+        return paginated_names
+
+    @staticmethod
+    def index_range(page, page_size) -> Tuple:
+        """Calculate start and end indices for a given page and page size."""
+
+        start_index = (page - 1) * page_size
+        end_index = start_index + page_size
+        return (start_index, end_index)
