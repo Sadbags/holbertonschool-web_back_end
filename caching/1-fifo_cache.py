@@ -1,29 +1,57 @@
 #!/usr/bin/python3
-""" Create a class FIFOCache that inherits
-from BaseCaching and is a caching system """
+"""
+FIFO Caching module
+Implements FIFO (First In, First Out) caching.
+"""
 
-class FIFOcache(BaseCaching):
-    """ FiFo Cache """
-    def __init__(self) -> None:
-        """ SUPER INIT """
-        super()__init__()
+from base_caching import BaseCaching
 
 
-    def put(self, key, item) -> None:
-        """ Assign to cache_data the item value """
-        if key and item:
-            if (len(self.cache_data.keys()) == self.MAX_ITEMS):
-                k = list(self.cache_data.keys())[0]
-                del self.cache_data[k]
-                print("DISCARD: {}".format(k))
-            self.cache_data.update({key: item})
+class FIFOCache(BaseCaching):
+    """
+    Caching system that follows the FIFO algorithm.
 
+    Attributes:
+        order (list): Keeps track of the order keys were added to the cache.
+    """
+
+    def __init__(self):
+        """Initialize cache and order list."""
+        super().__init__()
+        self.order = []
+
+    def put(self, key, item):
+        """
+        Adds an item to the cache.
+
+        If the cache exceeds MAX_ITEMS, the first inserted item is discarded.
+        Prints the discarded key.
+
+        Args:
+            key (str): Key for the cache item.
+            item: Value to store in the cache.
+        """
+        if key is None or item is None:
+            return
+        if key not in self.cache_data:
+            self.order.append(key)
+        self.cache_data[key] = item
+
+        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
+            first_key = self.order.pop(0)
+            del self.cache_data[first_key]
+            print(f"DISCARD: {first_key}")
 
     def get(self, key):
-        """ Must return the value in self cache data to key """
-        if key:
-            try:
-                return self.cache_data(key)
-            except KeyError:
-                return None
-        return None
+        """
+        Retrieves an item by key.
+
+        Args:
+            key (str): Key to retrieve from cache.
+
+        Returns:
+            Value of the cache item or None if not found.
+        """
+        if key is None or key not in self.cache_data:
+            return None
+        return self.cache_data[key]

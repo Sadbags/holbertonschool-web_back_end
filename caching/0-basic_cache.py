@@ -1,26 +1,32 @@
 #!/usr/bin/python3
-""" Create a class BasicCache that inherits
-from BaseCaching and is a caching system """
+"""
+BaseCaching module
+"""
+from base_caching import BaseCaching
 
-BaseCaching = __import__('base_caching').BaseCaching
 
 class BasicCache(BaseCaching):
-    """ caching system """
-    def __init__(self) -> None:
-        super().__init__()
-
+    """
+    a class that manage a cache, Inherits
+    from BaseCaching
+    """
 
     def put(self, key, item):
-        """ Must assign to the dictionary self.cache_data
-            the item value for the key
         """
-        if key and item:
+        adds an item to cache if both key
+        and  item are not None
+        """
+        if key is not None and item is not None:
             self.cache_data[key] = item
 
     def get(self, key):
-        """ Must return the value in self.cache_data linked to key """
-        if key:
-            try:
-                return.self.cache_data(key)
-            except keyError:
-                return None
+        """
+        Retrieves an item from cache by key.
+        Args:
+            key: the key to look for in the cache
+        Returns:
+            the value for key if it exists, otherwise None.
+        """
+        if key not in self.cache_data:
+            return None
+        return self.cache_data[key]

@@ -1,33 +1,37 @@
-#!/usr/bin/python3
-""" Create a class LIFOCache that inherits
-from BaseCaching and is a caching system """
+#!/usr/bin/env python3
+""" LIFOCache module
+"""
+from base_caching import BaseCaching
 
-BaseCaching = __import__('base_caching').BaseCaching
 
 class LIFOCache(BaseCaching):
-    """ LIFO cache """
+    """LIFOCache defines a LIFO caching system"""
 
-    def __init__(self) -> None:
-        """ SUPER INIT """
+    def __init__(self):
+        """Initialize  cache with
+        and empty order list
+        """
         super().__init__()
+        self.order = []
 
-    def put(self, key, item) -> None:
-        """ Must assign to cache_data the item value for key """
-        if key and item:
-            if key in list(self.cache_data.keys()):
-                del self.cache_data[key]
-            if (len(self.cache_data.keys()) == self.MAX_ITEMS):
-                k = list(self.cache_data.keys()).pop
-                del self.cache_data[k]
-                print("DISCARD: {}".format(k))
+    def put(self, key, item):
+        """
+        Add an item in the cache
+        If the cache exceeds MAX_ITEMS,
+        the last inserted item is discarded (LIFO).
+        """
+        if key is not None and item is not None:
+            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+                last_key = self.order.pop()
+                del self.cache_data[last_key]
+                print(f"DISCARD: {last_key}")
+
             self.cache_data[key] = item
-
+            self.order.append(key)
 
     def get(self, key):
-        """ return value in self cache data """
-        if key:
-            try:
-                return self.cache_data.get(key)
-            except KeyError:
-                return None
-        return None
+        """
+        Get an item from the cache by key
+        Returns None if key is no in cache
+        """
+        return self.cache_data.get(key, None)
