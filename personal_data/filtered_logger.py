@@ -1,35 +1,20 @@
 #!/usr/bin/env python3
-"""
-module task 0
-Regex-ing
-"""
+""" Filter logger """
 
 import re
-from typing import List
 import logging
+import os
+from typing import List
 import mysql.connector
 
 
-def filter_datum(
-    fields: List[str], redaction: str, message: str, separator: str
-) -> str:
-    """
-    Args:
-        This function takes a list of fields,
-        redacts their values in a given log message
-    Returns:
-        A string with the specified fields redacted.
-    """
-    for field in fields:
-        message = re.sub(
-            f"{field}=.*?{separator}",
-            f"{field}={redaction}{separator}", message
-        )
-    return message
+PII_FIELDS = ('name', 'email', 'phone',
+              'ssn', 'password')
 
 
 class RedactingFormatter(logging.Formatter):
-    """Redacting Formatter class"""
+    """ Redacting Formatter class
+        """
 
     REDACTION = "***"
     FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
@@ -40,6 +25,56 @@ class RedactingFormatter(logging.Formatter):
         self.fields = fields
 
     def format(self, record: logging.LogRecord) -> str:
-        from filtered_logger import filter_datum
-        record.msg = filter_datum(self.fields, self.REDACTION, record.msg, self.SEPARATOR)
-        return super().format(record)
+        """filter values in incoming log"""
+        return filter_datum(self.fields, self.REDACTION,
+                            super().format(record), self.SEPARATOR)
+
+
+def get_logger() -> logging.Logger:
+    """returns a logging.Logger object."""
+    logger = logging.getLogger("user_data")
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+    log = logging.StreamHandler()
+    log.setFormatter(RedactingFormatter(PII_FIELDS))
+    logger.addHandler(log)
+    return logger
+
+
+def filter_datum(fields: List[str],
+                 redaction: str, message:
+                 str, separator: str) -> str:
+    """returns the log message obfuscated"""
+    for field in fields:
+        message = re.sub(field + '=.*?' + separator,
+                         field + '=' + redaction + separator, message)
+    return message
+
+
+def get_db() -> mysql.connector.connection.MySQLConnection:
+    """function that returns a connector to the database"""
+    cnx = mysql.connector.connect(
+        user=os.getenv('PERSONAL_DATA_DB_USERNAME'),
+        password=os.getenv('PERSONAL_DATA_DB_PASSWORD'),
+        host=os.getenv('PERSONAL_DATA_DB_HOST'),
+        database=os.getenv('PERSONAL_DATA_DB_NAME'))
+    return cnx
+
+
+def main() -> None:
+    """obtain a database connection
+    using get_db and retrieve all
+    rows in the users table"""
+    query = 'SELECT * FROM users'
+    cnx = get_db()
+    cursor = cnx.cursor()
+    cursor.execute(query)
+    logger = get_logger()
+    for item in cursor:
+        logger.log(logging.INFO, item[0])
+    cursor.close()
+    cnx.close()
+
+
+if __name__ == '__main__':
+    main()
