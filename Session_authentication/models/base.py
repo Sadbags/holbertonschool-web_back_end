@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-""" Base module """
-
+""" Base module
+"""
 from datetime import datetime
 from typing import TypeVar, List, Iterable
 from os import path
@@ -86,15 +86,16 @@ class Base():
             json.dump(objs_json, f)
 
     def save(self):
-        """ Save current object """
-
+        """ Save current object
+        """
         s_class = self.__class__.__name__
         self.updated_at = datetime.utcnow()
         DATA[s_class][self.id] = self
         self.__class__.save_to_file()
 
     def remove(self):
-        """ Remove object from storage """
+        """ Remove object
+        """
         s_class = self.__class__.__name__
         if DATA[s_class].get(self.id) is not None:
             del DATA[s_class][self.id]
@@ -102,25 +103,30 @@ class Base():
 
     @classmethod
     def count(cls) -> int:
-        """ Count all objects """
+        """ Count all objects
+        """
         s_class = cls.__name__
         return len(DATA[s_class].keys())
 
     @classmethod
     def all(cls) -> Iterable[TypeVar('Base')]:
-        """ Return all objects """
+        """ Return all objects
+        """
         return cls.search()
 
     @classmethod
     def get(cls, id: str) -> TypeVar('Base'):
-        """ Return one object by ID """
+        """ Return one object by ID
+        """
         s_class = cls.__name__
         return DATA[s_class].get(id)
 
     @classmethod
     def search(cls, attributes: dict = {}) -> List[TypeVar('Base')]:
-        """ Search all objects with matching attributes """
+        """ Search all objects with matching attributes
+        """
         s_class = cls.__name__
+
         def _search(obj):
             if len(attributes) == 0:
                 return True
