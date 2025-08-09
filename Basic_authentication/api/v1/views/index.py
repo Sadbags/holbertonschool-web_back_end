@@ -77,7 +77,8 @@ def unauthorized() -> str:
         - Useful for testing authentication logic and error handling.
 
     Returns:
-        - No body content (the `abort()` function sends a default error response).
+        - No body content (the `abort()`
+        function sends a default error response).
     HTTP status code:
         401 Unauthorized
     """
@@ -96,7 +97,8 @@ def forbidden() -> str:
         - Useful for testing permission handling and error responses.
 
     Returns:
-        - No body content (the `abort()` function sends a default error response).
+        - No body content (the `abort()`
+        function sends a default error response).
     HTTP status code:
         403 Forbidden
     """
