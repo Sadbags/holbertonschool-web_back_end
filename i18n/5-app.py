@@ -3,7 +3,7 @@
 
 
 from flask import Flask, request, render_template, g
-from flask_babel import Babel
+from flask_babel import Babel, gettext as _gettext_orig
 from os import getenv
 from typing import Union
 
@@ -15,7 +15,6 @@ users = {
 }
 
 app = Flask(__name__)
-babel = Babel(app)
 
 
 class Config(object):
@@ -46,6 +45,9 @@ def get_locale() -> str:
         return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
+babel = Babel(app, locale_selector=get_locale)
+
+
 def get_user() -> Union[dict, None]:
     """ Returns user dict if ID can be found """
     if request.args.get('login_as'):
@@ -60,6 +62,16 @@ def get_user() -> Union[dict, None]:
 def before_request():
     """ Finds user and sets as global on flask.g.user """
     g.user = get_user()
+
+
+
+def _gettext(message: str, **kwargs) -> str:
+    """Translate message"""
+    return _gettext_orig(message, **kwargs)
+
+def _(message: str, **kwargs) -> str:
+    """Shortcut for templates"""
+    return _gettext(message, **kwargs)
 
 
 if __name__ == "__main__":
