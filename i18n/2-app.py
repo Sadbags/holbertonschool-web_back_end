@@ -32,4 +32,5 @@ app.config.from_object(Config)
 @app.route("/", methods=['GET'])
 def hello_world():
     """hello world"""
-    return render_template('2-index.html')
+    # Use a template; translation function available as _ in Jinja too
+    return render_template('2-index.html', greeting=_("Hello, world!"))
