@@ -54,13 +54,14 @@ def hello_world() -> str:
     return render_template("5-index.html")
 
 
-@babel.localeselector
 def get_locale() -> str:
     """Select a language translation to use for that request"""
     locale = request.args.get("locale")
     if locale and locale in app.config['LANGUAGES']:
         return locale
     return request.accept_languages.best_match(app.config['LANGUAGES'])
+
+babel = Babel(app, locale_selector=get_locale)
 
 
 if __name__ == "__main__":
