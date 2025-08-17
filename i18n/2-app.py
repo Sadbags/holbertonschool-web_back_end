@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 class Config(object):
     """
-    a configuration variable
+    a configuration values for the flask app
     """
     LANGUAGES = ['en', 'fr']
     BABEL_DEFAULT_LOCALE = 'en'
@@ -29,10 +29,11 @@ app.config.from_object(Config)
 
 @app.route("/", methods=['GET'])
 def hello_world():
-    """hello world"""
+    """renders the main page"""
     # Use a template; translation function available as _ in Jinja too
     return render_template('2-index.html', greeting=_("Hello, world!"))
 
 
 if __name__ == "__main__":
+    # Run the app when executed directly (useful for development)
     app.run()
