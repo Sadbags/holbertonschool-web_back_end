@@ -56,7 +56,8 @@ def get_locale() -> str:
 
 
 # Initialize Babel with custom locale selector
-babel.init_app(app, locale_selector=get_locale)
+babel = Babel(app, locale_selector=get_locale)
+
 
 
 # Mock user database table
