@@ -6,7 +6,6 @@ import flask
 from flask import Flask, render_template, g, request
 from flask_babel import Babel, gettext as _
 app = Flask(__name__)
-babel = Babel(app)
 
 
 class Config(object):
@@ -18,7 +17,6 @@ class Config(object):
     BABEL_DEFAULT_TIMEZONE = 'UTC'
 
 
-@babel.localeselector
 def get_locale() -> str:
     """Select a language translation to use for that request"""
     return request.accept_languages.best_match(app.config['LANGUAGES'])
@@ -34,3 +32,7 @@ def hello_world():
     """hello world"""
     # Use a template; translation function available as _ in Jinja too
     return render_template('2-index.html', greeting=_("Hello, world!"))
+
+
+if __name__ == "__main__":
+    app.run()
