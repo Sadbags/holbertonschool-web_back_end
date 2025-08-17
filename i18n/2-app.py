@@ -19,13 +19,10 @@ class Config(object):
 
 
 @babel.localeselector
-def get_locale():
-    """ if a user is logged in, use the locale from the user settings
-    """
-    user = getattr(g, 'user', None)
-    if user is not None:
-        return user.locale
-    return request.accept_languages.best_match(['en', 'fr'])
+def get_locale() -> str:
+    """Select a language translation to use for that request"""
+    return request.accept_languages.best_match(app.config['LANGUAGES'])
+
 
 
 app.config.from_object(Config)
