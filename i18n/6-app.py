@@ -1,18 +1,66 @@
 #!/usr/bin/env python3
+"""Flask app with Babel and mock login for the i18n project.
+
+This module configures Flask-Babel (locale selection via URL, user,
+or headers), and mocks a login flow via a query parameter, exposing the
+user on `g.user`. The index route renders the '6-index.html' template
+with gettext IDs.
 """
- Parametrize templates
-"""
-import flask
-from flask import Flask, render_template, g, request
+
+from flask import Flask, render_template, request, g
 from flask_babel import Babel
-from flask_babel import refresh
+from typing import Optional, Dict, Any
+
+app: Flask = Flask(__name__)
 
 
-app = Flask(__name__)
-babel = Babel(app)
+class Config:
+    """Application configuration for available languages and Babel defaults."""
+
+    LANGUAGES = ["en", "fr"]
+    BABEL_DEFAULT_LOCALE = "en"
+    BABEL_DEFAULT_TIMEZONE = "UTC"
 
 
-users = {
+# Load configuration into the Flask app
+app.config.from_object(Config)
+
+# Instantiate Babel without app; initialize with locale selector
+babel: Babel = Babel()
+
+
+def get_locale() -> str:
+    """Resolve locale with priority: URL -> user -> headers -> default.
+
+    1) If `?locale=<code>` is in the query string and supported, use it.
+    2) If a user is logged in and has a supported `locale`, use it.
+    3) Otherwise, use `Accept-Language` best match among `Config.LANGUAGES`.
+    4) Fallback to the default configured locale.
+    """
+    # 1) URL parameter override
+    url_locale = request.args.get("locale")
+    if url_locale and url_locale in app.config["LANGUAGES"]:
+        return url_locale
+
+    # 2) Logged-in user's preferred locale
+    user = getattr(g, "user", None)
+    if user:
+        user_locale = user.get("locale")
+        if user_locale in app.config["LANGUAGES"]:
+            return user_locale
+
+    # 3) Accept-Language header best match
+    match = request.accept_languages.best_match(app.config["LANGUAGES"])
+    # 4) Fallback
+    return match or app.config.get("BABEL_DEFAULT_LOCALE", "en")
+
+
+# Initialize Babel with custom locale selector
+babel.init_app(app, locale_selector=get_locale)
+
+
+# Mock user database table
+users: Dict[int, Dict[str, Any]] = {
     1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
     2: {"name": "Beyonce", "locale": "en", "timezone": "US/Central"},
     3: {"name": "Spock", "locale": "kg", "timezone": "Vulcan"},
@@ -20,56 +68,27 @@ users = {
 }
 
 
-class Config(object):
-    """
-    a configuration variable
-    """
-    LANGUAGES = ['en', 'fr']
-    BABEL_DEFAULT_LOCALE = 'en'
-    BABEL_DEFAULT_TIMEZONE = 'UTC'
+def get_user() -> Optional[Dict[str, Any]]:
+    """Retrieve a user dict from the mock DB via `login_as` query param.
 
-
-def get_user() -> dict:
+    Returns None if the parameter is missing or invalid.
     """
-    get user
-    """
-    user_id = request.args.get('login_as')
-    if user_id and int(user_id) in users:
-        return users[int(user_id)]
-    return None
+    user_id = request.args.get("login_as")
+    if not user_id:
+        return None
+    try:
+        return users.get(int(user_id))
+    except (ValueError, TypeError):
+        return None
 
 
 @app.before_request
-def before_request():
-    """
-    before request handler
-    """
-    if get_user() is not None:
-        g.user = get_user()
-        refresh()
+def before_request() -> None:
+    """Execute before each request to set `g.user` for templates/views."""
+    g.user = get_user()
 
 
-@babel.localeselector
-def get_locale():
-    """ if a user is logged in, use the locale from the user settings
-    """
-    if request.args.get('locale'):
-        if request.args.get('locale') in Config.LANGUAGES:
-            return request.args.get('locale')
-
-    if hasattr(g, "user") and(
-                    g.user['locale'] and
-                    g.user['locale'] in Config.LANGUAGES
-                    ):
-        return g.user['locale']
-
-    return request.accept_languages.best_match(['en', 'fr'])
-
-
-app.config.from_object(Config)
-
-
-@app.route("/", methods=['GET'])
-def hello_world():
-    """hello world"""
+@app.route('/')
+def index() -> str:
+    """Render the index page using translated strings in the template."""
     return render_template('6-index.html')

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-""" Route module for the API - Mock logging in"""
+"""
+Parametrize templates
+"""
+import flask
+from flask import Flask, render_template, g, request
+from flask_babel import Babel
 
 
-from flask import Flask, request, render_template, g
-from flask_babel import Babel, gettext as _gettext_orig
-from os import getenv
-from typing import Union
+app = Flask(__name__)
+babel = Babel(app)
+
 
 users = {
     1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
@@ -14,67 +18,50 @@ users = {
     4: {"name": "Teletubby", "locale": None, "timezone": "Europe/London"},
 }
 
-app = Flask(__name__)
-
 
 class Config(object):
-    """ Setup - Babel configuration """
+    """
+    a configuration variable
+    """
     LANGUAGES = ['en', 'fr']
     BABEL_DEFAULT_LOCALE = 'en'
     BABEL_DEFAULT_TIMEZONE = 'UTC'
 
 
-app.config.from_object('5-app.Config')
-
-
-@app.route('/', methods=['GET'], strict_slashes=False)
-def index() -> str:
-    """ GET /
-    Return: 4-index.html
+def get_user() -> dict:
     """
-    return render_template('5-index.html')
-
-
-def get_locale() -> str:
-    """ Determines best match for supported languages """
-    if request.args.get('locale'):
-        locale = request.args.get('locale')
-        if locale in app.config['LANGUAGES']:
-            return locale
-    else:
-        return request.accept_languages.best_match(app.config['LANGUAGES'])
-
-
-babel = Babel(app, locale_selector=get_locale)
-
-
-def get_user() -> Union[dict, None]:
-    """ Returns user dict if ID can be found """
-    if request.args.get('login_as'):
-        user = int(request.args.get('login_as'))
-        if user in users:
-            return users.get(user)
-    else:
-        return None
+    get user
+    """
+    user_id = request.args.get('login_as')
+    if user_id and int(user_id) in users:
+        return users[int(user_id)]
+    return None
 
 
 @app.before_request
 def before_request():
-    """ Finds user and sets as global on flask.g.user """
-    g.user = get_user()
+    """
+    before request handler
+    """
+    if get_user():
+        g.user = get_user()
 
 
+@babel.localeselector
+def get_locale():
+    """ if a user is logged in, use the locale from the user settings
+    """
+    if request.args.get('locale'):
+        if request.args.get('locale') in Config.LANGUAGES:
+            return request.args.get('locale')
 
-def _gettext(message: str, **kwargs) -> str:
-    """Translate message"""
-    return _gettext_orig(message, **kwargs)
-
-def _(message: str, **kwargs) -> str:
-    """Shortcut for templates"""
-    return _gettext(message, **kwargs)
+    return request.accept_languages.best_match(['en', 'fr'])
 
 
-if __name__ == "__main__":
-    host = getenv("API_HOST", "0.0.0.0")
-    port = getenv("API_PORT", "5000")
-    app.run(host=host, port=port)
+app.config.from_object(Config)
+
+
+@app.route("/", methods=['GET'])
+def hello_world():
+    """hello world"""
+    return render_template('5-index.html')
